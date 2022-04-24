@@ -90,7 +90,8 @@ def output_to_target(output, width, height):
     # Convert model output to target format [batch_id, class_id, x, y, w, h, conf]
     if isinstance(output, torch.Tensor):
         output = output.cpu().numpy()
-
+    else:
+        output = [o.cpu().numpy() for o in output]
     targets = []
     for i, o in enumerate(output):
         if o is not None:
@@ -108,7 +109,10 @@ def output_to_target(output, width, height):
     return np.array(targets)
 
 
-def plot_images(images, targets, paths=None, fname='images.jpg', names=None, max_size=640, max_subplots=16):
+def plot_images(
+    images, targets, paths=None, fname='images.jpg',
+    names=None, max_size=640, max_subplots=16, conf_thresh=0.25
+):
     # Plot image grid with labels
 
     if isinstance(images, torch.Tensor):
@@ -161,7 +165,7 @@ def plot_images(images, targets, paths=None, fname='images.jpg', names=None, max
                 cls = int(classes[j])
                 color = colors[cls % len(colors)]
                 cls = names[cls] if names else cls
-                if labels or conf[j] > 0.25:  # 0.25 conf thresh
+                if labels or conf[j] > conf_thresh:  # 0.25 conf thresh
                     label = '%s' % cls if labels else '%s %.1f' % (cls, conf[j])
                     plot_one_box(box, mosaic, label=label, color=color, line_thickness=tl)
 
